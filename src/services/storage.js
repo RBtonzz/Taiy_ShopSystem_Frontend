@@ -5,7 +5,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5080/api',
+  baseURL: import.meta.env.VITE_API_URL || 'https://taiy-shop-server.onrender.com/api',
 });
 
 // Attach JWT token to every request automatically
