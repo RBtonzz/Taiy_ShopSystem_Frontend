@@ -267,7 +267,7 @@ function OrderDetailView({ round, onBack }) {
       <div className="glass-card rounded-2xl p-4 mb-4">
         <div className="flex justify-between items-center">
           <div className="text-center flex-1">
-            <p className="text-2xl font-bold text-green-700">{filtered.length}</p>
+            <p className="text-2xl font-bold text-green-700">{filtered.reduce((sum, order) => sum + order.itemCount, 0)}</p>
             <p className="text-xs text-green-500">ລາຍການທັງໝົດ</p>
           </div>
           <div className="w-px h-10 bg-green-200" />
