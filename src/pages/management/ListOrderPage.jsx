@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { roundService, orderService } from '../../services/storage';
 import { useAuth } from '../../context/AuthContext';
 import Swal from 'sweetalert2';
@@ -21,11 +20,19 @@ function formatNumber(str) {
 // ---- ROUND LIST VIEW ----
 function RoundListView({ onSelectRound }) {
   const [rounds, setRounds] = useState([]);
+  const [summaries, setSummaries] = useState({});
   const [showCreate, setShowCreate] = useState(false);
   const [roundName, setRoundName] = useState('');
   const { user } = useAuth();
 
-  const load = () => setRounds(roundService.getAll());
+  const load = async () => {
+    const data = await roundService.getAll();
+    setRounds(data);
+    const entries = await Promise.all(
+      data.map(async r => [r.id, await orderService.getSummary(r.id)])
+    );
+    setSummaries(Object.fromEntries(entries));
+  };
   useEffect(() => { load(); }, []);
 
   const handleCreate = async () => {
@@ -43,10 +50,10 @@ function RoundListView({ onSelectRound }) {
       confirmButtonColor: '#27AE60',
     });
     if (result.isConfirmed) {
-      roundService.create(roundName, user.username);
+      await roundService.create(roundName, user.username);
       setRoundName('');
       setShowCreate(false);
-      load();
+      await load();
       Swal.fire({ icon: 'success', title: 'ສ້າງຮອບສຳເລັດ!', timer: 1200, showConfirmButton: false });
     }
   };
@@ -62,8 +69,8 @@ function RoundListView({ onSelectRound }) {
       confirmButtonColor: '#EF4444',
     });
     if (result.isConfirmed) {
-      roundService.close(round.id);
-      load();
+      await roundService.close(round.id);
+      await load();
     }
   };
 
@@ -109,7 +116,7 @@ function RoundListView({ onSelectRound }) {
           </div>
         )}
         {openRounds.map(round => {
-          const summary = orderService.getSummary(round.id);
+          const summary = summaries[round.id] || { count: 0, totalPrice: 0 };
           return (
             <div key={round.id} className="glass-card rounded-2xl p-4 mb-3 border-l-4 border-green-400">
               <div className="flex items-start justify-between mb-2">
@@ -143,7 +150,7 @@ function RoundListView({ onSelectRound }) {
         <div>
           <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">⚫ ຮອບທີ່ປິດແລ້ວ ({closedRounds.length})</p>
           {closedRounds.map(round => {
-            const summary = orderService.getSummary(round.id);
+            const summary = summaries[round.id] || { count: 0, totalPrice: 0 };
             return (
               <div key={round.id} className="glass-card rounded-2xl p-4 mb-3 border-l-4 border-gray-300 opacity-75">
                 <div className="flex items-start justify-between mb-2">
@@ -180,7 +187,7 @@ function OrderDetailView({ round, onBack }) {
   const [form, setForm] = useState({ customerName: '', itemCount: '', totalPrice: '' });
   const { user } = useAuth();
 
-  const load = () => setOrders(orderService.getByRound(round.id));
+  const load = async () => setOrders(await orderService.getByRound(round.id));
   useEffect(() => { load(); }, [round.id]);
 
   const filtered = orders.filter(o => o.customerName.toLowerCase().includes(search.toLowerCase()));
@@ -193,10 +200,10 @@ function OrderDetailView({ round, onBack }) {
       Swal.fire({ icon: 'warning', title: 'ກະລຸນາຕື່ມຂໍ້ມູນໃຫ້ຄົບ', confirmButtonColor: '#27AE60' }); return;
     }
     if (editOrder) {
-      orderService.update(editOrder.id, { customerName: form.customerName, itemCount: parseInt(form.itemCount.replace(/,/g, '')), totalPrice: parseInt(form.totalPrice.replace(/,/g, '')) });
+      await orderService.update(editOrder.id, { customerName: form.customerName, itemCount: parseInt(form.itemCount.replace(/,/g, '')), totalPrice: parseInt(form.totalPrice.replace(/,/g, '')) });
       Swal.fire({ icon: 'success', title: 'ແກ້ໄຂສຳເລັດ!', timer: 1200, showConfirmButton: false });
     } else {
-      orderService.create({
+      await orderService.create({
         roundId: round.id,
         customerName: form.customerName.trim(),
         itemCount: parseInt(form.itemCount.replace(/,/g, '')),
@@ -205,7 +212,7 @@ function OrderDetailView({ round, onBack }) {
       });
       Swal.fire({ icon: 'success', title: 'ເພີ່ມສຳເລັດ!', timer: 1200, showConfirmButton: false });
     }
-    load(); resetForm();
+    await load(); resetForm();
   };
 
   const handleEdit = (order) => {
@@ -224,7 +231,7 @@ function OrderDetailView({ round, onBack }) {
       showCancelButton: true, confirmButtonText: 'ລຶບເລີຍ', cancelButtonText: 'ຍົກເລີກ',
       confirmButtonColor: '#EF4444',
     });
-    if (result.isConfirmed) { orderService.delete(order.id); load(); }
+    if (result.isConfirmed) { await orderService.delete(order.id); await load(); }
   };
 
   return (

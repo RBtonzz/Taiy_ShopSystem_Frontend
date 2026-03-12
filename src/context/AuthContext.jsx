@@ -13,8 +13,8 @@ export function AuthProvider({ children }) {
     setLoading(false);
   }, []);
 
-  const login = (username, password) => {
-    const result = authService.login(username, password);
+  const login = async (username, password) => {
+    const result = await authService.login(username, password);
     if (result.success) setUser(result.user);
     return result;
   };

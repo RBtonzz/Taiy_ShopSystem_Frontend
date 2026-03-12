@@ -16,9 +16,12 @@ export default function AddOrderPage() {
 }
 
   useEffect(() => {
-    const rounds = roundService.getOpenRounds();
-    setOpenRounds(rounds);
-    if (rounds.length > 0) setForm(f => ({ ...f, roundId: rounds[0].id }));
+    async function load() {
+      const rounds = await roundService.getOpenRounds();
+      setOpenRounds(rounds);
+      if (rounds.length > 0) setForm(f => ({ ...f, roundId: rounds[0].id }));
+    }
+    load();
   }, []);
 
   const handleChange = (field, val) => {
@@ -57,7 +60,7 @@ export default function AddOrderPage() {
     });
 
     if (result.isConfirmed) {
-      const newOrder = orderService.create({
+      const newOrder = await orderService.create({
         roundId: form.roundId,
         customerName: form.customerName.trim(),
         itemCount: items,

@@ -17,8 +17,7 @@ export default function LoginPage() {
       return;
     }
     setLoading(true);
-    await new Promise(r => setTimeout(r, 500)); // simulate network
-    const result = login(username, password);
+    const result = await login(username, password);
     setLoading(false);
     if (result.success) {
       Swal.fire({ icon: 'success', title: `ຍິນດີຕ້ອນຮັບ! 👋`, text: `ເຂົ້າສູ່ລະບົບໃນຖານະ ${result.user.name}`, timer: 1500, showConfirmButton: false, confirmButtonColor: '#27AE60' });

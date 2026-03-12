@@ -1,11 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
-import { initMockData } from './services/storage';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import ManagementPage from './pages/management/index';
-
-initMockData();
 
 export default function App() {
   return (

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { roundService, orderService } from '../../services/storage';
-import Swal from 'sweetalert2';
+import { useAuth } from '../../context/AuthContext';
+import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 
 function formatDate(iso) {
@@ -9,8 +10,17 @@ function formatDate(iso) {
   return d.toLocaleDateString('lo-LA', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.');
 }
 
-function generatePrintHTML(round, orders) {
+function formatDateTime(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  const date = d.toLocaleDateString('lo-LA', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.');
+  const time = d.toLocaleTimeString('lo-LA', { hour: '2-digit', minute: '2-digit', hour12: false });
+  return `${date} ${time}`;
+}
+
+function generatePrintHTML(round, orders, exportedBy) {
   const total = orders.reduce((s, o) => s + o.totalPrice, 0);
+  const totalItems = orders.reduce((s, o) => s + o.itemCount, 0);
   const rows = orders.map((o, i) => `
     <tr style="border-bottom:1px solid #e5e7eb">
       <td style="padding:8px 12px;text-align:center">${i + 1}</td>
@@ -44,17 +54,20 @@ function generatePrintHTML(round, orders) {
   tbody tr:nth-child(even) { background:#f9fafb; }
   .total-row { background:#f0fff4 !important; font-weight:700; }
   .footer { margin-top:20px; text-align:center; font-size:11px; color:#9ca3af; }
-  @media print { body { padding:15px; } }
+  @media print {
+    body { padding:15px; }
+    @page { size: A4; margin: 15mm; }
+  }
 </style>
 </head>
 <body>
 <div class="header">
   <h1>📋 ${round.name}</h1>
-  <p>ລາຍງານຄຳສັ່ງຊື້ | ເປີດ: ${formatDate(round.openAt)} ${round.closeAt ? '| ປິດ: ' + formatDate(round.closeAt) : ''}</p>
-  <p style="margin-top:4px;font-size:11px">ພິມພ໌ເມື່ອ: ${formatDate(new Date().toISOString())}</p>
+  <p>ລາຍງານຄຳສັ່ງຊື້ | ເປີດ: ${formatDateTime(round.openAt)} | ປິດ: ${round.closeAt ? formatDateTime(round.closeAt) : 'ຍັງບໍ່ປິດ'}</p>
+  <p style="margin-top:4px;font-size:11px">Export ວັນທີ: ${formatDate(new Date().toISOString())} | Export ໂດຍ: ${exportedBy}</p>
 </div>
 <div class="summary">
-  <div class="summary-box"><div class="num">${orders.length}</div><div class="lbl">ຈຳນວນລາຍການ</div></div>
+  <div class="summary-box"><div class="num">${totalItems}</div><div class="lbl">ຈຳນວນລາຍການ (ຢ່າງ)</div></div>
   <div class="summary-box"><div class="num">${total.toLocaleString()}</div><div class="lbl">ຍອດລວມ (LAK)</div></div>
 </div>
 <table>
@@ -71,8 +84,10 @@ function generatePrintHTML(round, orders) {
   <tbody>
     ${rows}
     <tr class="total-row">
-      <td colspan="3" style="padding:10px 12px;text-align:right">ຍອດລວມທັງໝົດ</td>
-      <td style="padding:10px 12px;text-align:right">${total.toLocaleString()} LAK</td>
+      <td colspan="2" style="padding:10px 12px;text-align:right">ລວມທັງໝົດ</td>
+      <td style="padding:10px 12px;text-align:center">${totalItems} ຢ່າງ</td>
+      <td colspan="1" style="padding:10px 12px;text-align:right">ຍອດລວມ:</td>
+      <td style="padding:10px 12px;text-align:right">${total.toLocaleString()} ກີບ</td>
       <td colspan="2"></td>
     </tr>
   </tbody>
@@ -83,35 +98,51 @@ function generatePrintHTML(round, orders) {
 }
 
 function HistoryDetailView({ round, onBack }) {
+  const { user } = useAuth();
   const [orders, setOrders] = useState([]);
   const [search, setSearch] = useState('');
 
-  useEffect(() => { setOrders(orderService.getByRound(round.id)); }, [round.id]);
+  useEffect(() => {
+    async function load() { setOrders(await orderService.getByRound(round.id)); }
+    load();
+  }, [round.id]);
 
   const filtered = orders.filter(o => o.customerName.toLowerCase().includes(search.toLowerCase()));
   const totalPrice = filtered.reduce((s, o) => s + o.totalPrice, 0);
 
-  const handleExport = () => {
-    // create a hidden container with the HTML and convert to PDF using jsPDF
-    const html = generatePrintHTML(round, orders);
-    const container = document.createElement('div');
-    container.style.display = 'none';
-    container.innerHTML = html;
-    document.body.appendChild(container);
+  const handleExport = async () => {
+    const html = generatePrintHTML(round, orders, user?.username || user?.name || 'Admin');
 
-    const doc = new jsPDF('p', 'pt', 'a4');
-    // wait for fonts to load so Lao font is applied
-    document.fonts.ready.then(() => {
-      doc.html(container, {
-        callback: (doc) => {
-          doc.save(`${round.name}.pdf`);
-          document.body.removeChild(container);
-        },
-        x: 10,
-        y: 10,
-        html2canvas: { scale: 0.5 }
+    // Render full HTML in an off-screen iframe (display:none blocks html2canvas)
+    const iframe = document.createElement('iframe');
+    iframe.style.cssText = 'position:fixed;left:-9999px;top:0;width:794px;height:1123px;border:none;';
+    document.body.appendChild(iframe);
+
+    // Load HTML via Blob URL to avoid deprecated document.write
+    const blob = new Blob([html], { type: 'text/html' });
+    const blobUrl = URL.createObjectURL(blob);
+    await new Promise(resolve => { iframe.onload = resolve; iframe.src = blobUrl; });
+    URL.revokeObjectURL(blobUrl);
+
+    const iDoc = iframe.contentDocument;
+    await iDoc.fonts.ready;
+
+    try {
+      const canvas = await html2canvas(iDoc.body, {
+        scale: 2,
+        useCORS: true,
+        width: 794,
+        windowWidth: 794,
       });
-    });
+
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = (canvas.height * pageW) / canvas.width;
+      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, pageW, pageH);
+      pdf.save(`${round.name}.pdf`);
+    } finally {
+      document.body.removeChild(iframe);
+    }
   };
 
   return (
@@ -131,7 +162,7 @@ function HistoryDetailView({ round, onBack }) {
       <div className="glass-card rounded-2xl p-4 mb-4">
         <div className="flex justify-between items-center">
           <div className="text-center flex-1">
-            <p className="text-2xl font-bold text-green-700">{filtered.length}</p>
+            <p className="text-2xl font-bold text-green-700">{filtered.reduce((sum, order) => sum + order.itemCount, 0)}</p>
             <p className="text-xs text-green-500">ລາຍການທັງໝົດ</p>
           </div>
           <div className="w-px h-10 bg-green-200" />
@@ -182,9 +213,20 @@ function HistoryDetailView({ round, onBack }) {
 
 export default function HistoryPage() {
   const [rounds, setRounds] = useState([]);
+  const [summaries, setSummaries] = useState({});
   const [selectedRound, setSelectedRound] = useState(null);
 
-  useEffect(() => { setRounds(roundService.getAll()); }, []);
+  useEffect(() => {
+    async function load() {
+      const data = await roundService.getAll();
+      setRounds(data);
+      const entries = await Promise.all(
+        data.map(async r => [r.id, await orderService.getSummary(r.id)])
+      );
+      setSummaries(Object.fromEntries(entries));
+    }
+    load();
+  }, []);
 
   if (selectedRound) return <HistoryDetailView round={selectedRound} onBack={() => setSelectedRound(null)} />;
 
@@ -200,7 +242,7 @@ export default function HistoryPage() {
       )}
 
       {rounds.map(round => {
-        const summary = orderService.getSummary(round.id);
+        const summary = summaries[round.id] || { count: 0, totalPrice: 0 };
         return (
           <div key={round.id} className="glass-card rounded-2xl p-4 mb-3">
             <div className="flex items-start justify-between mb-3">
