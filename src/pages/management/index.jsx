@@ -5,6 +5,7 @@ import ManagementLayout from '../../components/ManagementLayout';
 import ListOrderPage from './ListOrderPage';
 import HistoryPage from './HistoryPage';
 import AddOrderPage from './AddOrderPage';
+import { Leaf } from 'lucide-react';
 
 export default function ManagementPage() {
   const { user, loading } = useAuth();
@@ -17,7 +18,7 @@ export default function ManagementPage() {
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-honeydew">
       <div className="text-center">
-        <div className="text-4xl animate-spin mb-3">🍃</div>
+        <Leaf className="w-10 h-10 animate-spin text-green-600 mx-auto mb-3" />
         <p className="text-green-600">ກຳລັງໂຫຼດ...</p>
       </div>
     </div>

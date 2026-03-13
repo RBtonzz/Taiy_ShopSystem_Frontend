@@ -3,6 +3,7 @@ import { roundService, orderService } from '../../services/storage';
 import { useAuth } from '../../context/AuthContext';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
+import { Clock, Download, Circle } from 'lucide-react';
 
 function formatDate(iso) {
   if (!iso) return '—';
@@ -62,7 +63,7 @@ function generatePrintHTML(round, orders, exportedBy) {
 </head>
 <body>
 <div class="header">
-  <h1>📋 ${round.name}</h1>
+  <h1>${round.name}</h1>
   <p>ລາຍງານຄຳສັ່ງຊື້ | ເປີດ: ${formatDateTime(round.openAt)} | ປິດ: ${round.closeAt ? formatDateTime(round.closeAt) : 'ຍັງບໍ່ປິດ'}</p>
   <p style="margin-top:4px;font-size:11px">Export ວັນທີ: ${formatDate(new Date().toISOString())} | Export ໂດຍ: ${exportedBy}</p>
 </div>
@@ -113,12 +114,10 @@ function HistoryDetailView({ round, onBack }) {
   const handleExport = async () => {
     const html = generatePrintHTML(round, orders, user?.username || user?.name || 'Admin');
 
-    // Render full HTML in an off-screen iframe (display:none blocks html2canvas)
     const iframe = document.createElement('iframe');
     iframe.style.cssText = 'position:fixed;left:-9999px;top:0;width:794px;height:1123px;border:none;';
     document.body.appendChild(iframe);
 
-    // Load HTML via Blob URL to avoid deprecated document.write
     const blob = new Blob([html], { type: 'text/html' });
     const blobUrl = URL.createObjectURL(blob);
     await new Promise(resolve => { iframe.onload = resolve; iframe.src = blobUrl; });
@@ -154,7 +153,7 @@ function HistoryDetailView({ round, onBack }) {
           <p className="text-xs text-green-500">{formatDate(round.openAt)} — {formatDate(round.closeAt)}</p>
         </div>
         <button onClick={handleExport} className="btn-primary text-sm px-3 py-2 flex items-center gap-1">
-          <span>📤</span> ດາວໂຫລດ PDF
+          <Download className="w-4 h-4" /> ດາວໂຫລດ PDF
         </button>
       </div>
 
@@ -233,7 +232,9 @@ export default function HistoryPage() {
   return (
     <div className="px-4 py-5 max-w-lg mx-auto">
       <div className="mb-5">
-        <h2 className="font-display text-xl font-bold text-green-800">🕐 History</h2>
+        <h2 className="font-display text-xl font-bold text-green-800 flex items-center gap-2">
+          <Clock className="w-5 h-5" /> History
+        </h2>
         <p className="text-green-500 text-xs">ເບິ່ງປະຫວັດຮອບຄຳສັ່ງຊື້ທັງໝົດ</p>
       </div>
 
@@ -243,13 +244,15 @@ export default function HistoryPage() {
 
       {rounds.map(round => {
         const summary = summaries[round.id] || { count: 0, totalPrice: 0 };
+        const isOpen = round.status === 'open';
         return (
           <div key={round.id} className="glass-card rounded-2xl p-4 mb-3">
             <div className="flex items-start justify-between mb-3">
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <span className={round.status === 'open' ? 'badge-open' : 'badge-closed'}>
-                    {round.status === 'open' ? '🟢 ເປີດຢູ່' : '⚫ ປິດແລ້ວ'}
+                  <span className={isOpen ? 'badge-open' : 'badge-closed'}>
+                    <Circle className={`inline w-2.5 h-2.5 mr-1 ${isOpen ? 'fill-green-500 text-green-500' : 'fill-gray-500 text-gray-500'}`} />
+                    {isOpen ? 'ເປີດຢູ່' : 'ປິດແລ້ວ'}
                   </span>
                 </div>
                 <h3 className="font-bold text-green-800">{round.name}</h3>

@@ -1,11 +1,12 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Swal from 'sweetalert2';
+import { ClipboardList, Clock, Plus, Leaf, User, LogOut } from 'lucide-react';
 
 const navItems = [
-  { path: '/management/orders', icon: '📋', label: 'List Order' },
-  { path: '/management/history', icon: '🕐', label: 'History' },
-  { path: '/management/add', icon: '➕', label: 'Add Order' },
+  { path: '/management/orders', icon: ClipboardList, label: 'List Order' },
+  { path: '/management/history', icon: Clock, label: 'History' },
+  { path: '/management/add', icon: Plus, label: 'Add Order' },
 ];
 
 export default function ManagementLayout({ children }) {
@@ -37,18 +38,20 @@ export default function ManagementLayout({ children }) {
       <div className="glass-card sticky top-0 z-30 px-4 py-3 flex items-center justify-between border-b border-green-200">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-xl flex items-center justify-center shadow-sm" style={{ background: 'linear-gradient(135deg, #27AE60, #3D9970)' }}>
-            <span className="text-white text-sm">🍃</span>
+            <Leaf className="text-white w-4 h-4" />
           </div>
           <div>
             <p className="font-display font-bold text-green-800 text-sm leading-none">Order Manager</p>
-            <p className="text-green-500 text-xs">👤 {user?.name}</p>
+            <p className="text-green-500 text-xs flex items-center gap-1">
+              <User className="w-3 h-3" /> {user?.name}
+            </p>
           </div>
         </div>
         <button
           onClick={handleLogout}
           className="flex items-center gap-1.5 bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 text-xs font-semibold px-3 py-1.5 rounded-xl transition-all"
         >
-          <span>🚪</span> Logout
+          <LogOut className="w-4 h-4" /> Logout
         </button>
       </div>
 
@@ -68,7 +71,7 @@ export default function ManagementLayout({ children }) {
                 onClick={() => navigate(item.path)}
                 className={`nav-item ${isActive ? 'active' : ''} min-w-[72px]`}
               >
-                <span className="text-xl">{item.icon}</span>
+                <item.icon className="w-6 h-6" />
                 <span>{item.label}</span>
               </button>
             );

@@ -1,4 +1,17 @@
 import { useNavigate } from 'react-router-dom';
+import { Leaf, ClipboardList, BarChart2, Upload, Lock, LogIn, Zap, Package, Banknote } from 'lucide-react';
+
+const featureBadges = [
+  { icon: ClipboardList, label: 'ບັນທຶກຄຳສັ່ງຊື້' },
+  { icon: BarChart2, label: 'ສະຫຼຸບຍອດ' },
+  { icon: Upload, label: 'Export PDF' },
+];
+
+const infoCards = [
+  { icon: Zap, label: 'ວ່ອງໄວ', desc: 'ຕື່ມຄຳສັ່ງຊື້ທັນທີ' },
+  { icon: Package, label: 'ແຍກຮອບ', desc: 'ຈັດການຫຼາຍຮອບ' },
+  { icon: Banknote, label: 'ລວມຍອດ', desc: 'ຄຳນວນອັດຕະໂນມັດ' },
+];
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -15,7 +28,7 @@ export default function LandingPage() {
         {/* Header Shop Info */}
         <div className="text-center mb-5 mt-8">
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl mb-4 shadow-lg" style={{ background: 'linear-gradient(135deg, #27AE60, #3D9970)' }}>
-            <span className="text-4xl">🍃</span>
+            <Leaf className="text-white w-10 h-10" />
           </div>
           <h1 className="font-display text-3xl font-bold text-green-800 mb-2">
             Saengmani Shop
@@ -28,9 +41,9 @@ export default function LandingPage() {
 
         {/* Feature badges */}
         <div className="flex flex-wrap justify-center gap-2 mb-5">
-          {['📋 ບັນທຶກຄຳສັ່ງຊື້', '📊 ສະຫຼຸບຍອດ', '📤 Export PDF'].map(f => (
-            <span key={f} className="bg-white/70 text-green-700 text-xs px-3 py-1.5 rounded-full border border-green-200 font-medium shadow-sm">
-              {f}
+          {featureBadges.map(({ icon: Icon, label }) => (
+            <span key={label} className="inline-flex items-center gap-1.5 bg-white/70 text-green-700 text-xs px-3 py-1.5 rounded-full border border-green-200 font-medium shadow-sm">
+              <Icon className="w-3.5 h-3.5" /> {label}
             </span>
           ))}
         </div>
@@ -39,7 +52,7 @@ export default function LandingPage() {
         <div className="glass-card rounded-3xl p-6 mb-6">
           <div className="flex items-center justify-center gap-3 mb-3">
             <div className="w-8 h-8 bg-green-600 rounded-xl flex items-center justify-center">
-              <span className="text-white text-sm">🔐</span>
+              <Lock className="text-white w-4 h-4" />
             </div>
             <h2 className="font-display text-lg font-bold text-green-800">
               Login System
@@ -47,27 +60,24 @@ export default function LandingPage() {
           </div>
           <p className="text-green-600 text-sm leading-relaxed text-center mb-5">
             ລະບົບເຂົ້າສູ່ລະບົບເພື່ອຄວບຄຸມສິດການນຳໃຊ້
-        
           </p>
           <button
             onClick={() => navigate('/login')}
             className="btn-primary w-full py-3 text-base flex items-center justify-center gap-2"
           >
-            <span>🚀</span> ເຂົ້າສູ່ລະບົບ Login
+            <LogIn className="w-5 h-5" /> ເຂົ້າສູ່ລະບົບ Login
           </button>
         </div>
 
         {/* Info cards */}
         <div className="grid grid-cols-3 gap-3">
-          {[
-            { icon: '⚡', label: 'ໄວ', desc: 'ຕື່ມຄຳສັ່ງຊື້ທັນທີ' },
-            { icon: '📦', label: 'ແຍກຮອບ', desc: 'ຈັດການຫຼາຍຮອບ' },
-            { icon: '💰', label: 'ລວມຍອດ', desc: 'ຄຳນວນອັດຕະໂນມັດ' },
-          ].map(item => (
-            <div key={item.label} className="glass-card rounded-2xl p-3 text-center">
-              <div className="text-2xl mb-1">{item.icon}</div>
-              <div className="text-xs font-bold text-green-800">{item.label}</div>
-              <div className="text-xs text-green-500">{item.desc}</div>
+          {infoCards.map(({ icon: Icon, label, desc }) => (
+            <div key={label} className="glass-card rounded-2xl p-3 text-center">
+              <div className="flex justify-center mb-1">
+                <Icon className="w-6 h-6 text-green-600" />
+              </div>
+              <div className="text-xs font-bold text-green-800">{label}</div>
+              <div className="text-xs text-green-500">{desc}</div>
             </div>
           ))}
         </div>

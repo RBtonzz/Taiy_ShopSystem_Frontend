@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { roundService, orderService } from '../../services/storage';
 import { useAuth } from '../../context/AuthContext';
 import Swal from 'sweetalert2';
+import { Plus, ClipboardList, User, Package, Banknote, Save, CheckCircle2, Inbox } from 'lucide-react';
 
 export default function AddOrderPage() {
   const { user } = useAuth();
@@ -10,10 +11,9 @@ export default function AddOrderPage() {
   const [lastAdded, setLastAdded] = useState([]);
 
   function formatNumber(str) {
-  // remove non-digits then add commas
-  const digits = String(str).replace(/[^0-9]/g, '');
-  return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-}
+    const digits = String(str).replace(/[^0-9]/g, '');
+    return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  }
 
   useEffect(() => {
     async function load() {
@@ -42,18 +42,18 @@ export default function AddOrderPage() {
 
     const result = await Swal.fire({
       icon: 'info',
-      title: '✅ ກວດສອບຂໍ້ມູນ',
+      title: 'ກວດສອບຂໍ້ມູນ',
       html: `
         <div style="text-align:left;font-family:'Noto Sans Lao',sans-serif;font-size:15px;line-height:2">
-          <p>👤 <strong>ລູກຄ້າ:</strong> ${form.customerName}</p>
-          <p>📦 <strong>ຈຳນວນລາຍການ:</strong> ${items} ຢ່າງ</p>
-          <p>💰 <strong>ຍອດລວມ:</strong> ${price.toLocaleString()} LAK</p>
-          <p>📋 <strong>ຮອບຄຳສັ່ງຊື້:</strong> ${round?.name}</p>
-          <p>👩‍💼 <strong>ບັນທຶກໂດຍ:</strong> ${user?.username}</p>
+          <p><strong>ລູກຄ້າ:</strong> ${form.customerName}</p>
+          <p><strong>ຈຳນວນລາຍການ:</strong> ${items} ຢ່າງ</p>
+          <p><strong>ຍອດລວມ:</strong> ${price.toLocaleString()} LAK</p>
+          <p><strong>ຮອບຄຳສັ່ງຊື້:</strong> ${round?.name}</p>
+          <p><strong>ບັນທຶກໂດຍ:</strong> ${user?.username}</p>
         </div>
       `,
       showCancelButton: true,
-      confirmButtonText: 'ບັນທຶກເລີຍ ✓',
+      confirmButtonText: 'ບັນທຶກເລີຍ',
       cancelButtonText: 'ຍົກເລີກ',
       confirmButtonColor: '#27AE60',
       cancelButtonColor: '#9ca3af',
@@ -72,7 +72,7 @@ export default function AddOrderPage() {
 
       await Swal.fire({
         icon: 'success',
-        title: 'ບັນທຶກສຳເລັດ! 🎉',
+        title: 'ບັນທຶກສຳເລັດ!',
         text: `ຕື່ມຄຳສັ່ງຊື້ຂອງ ${newOrder.customerName} ແລ້ວ`,
         timer: 1500,
         showConfirmButton: false,
@@ -83,13 +83,15 @@ export default function AddOrderPage() {
   return (
     <div className="px-4 py-5 max-w-lg mx-auto">
       <div className="mb-5">
-        <h2 className="font-display text-xl font-bold text-green-800">➕ Add Order</h2>
+        <h2 className="font-display text-xl font-bold text-green-800 flex items-center gap-2">
+          <Plus className="w-5 h-5" /> Add Order
+        </h2>
         <p className="text-green-500 text-xs">ຕື່ມຄຳສັ່ງຊື້ໃໝ່ໄວວາ</p>
       </div>
 
       {openRounds.length === 0 ? (
         <div className="glass-card rounded-2xl p-8 text-center">
-          <div className="text-4xl mb-3">📭</div>
+          <Inbox className="w-16 h-16 mx-auto text-green-400 mb-3" />
           <p className="font-bold text-green-700 mb-1">ບໍ່ມີຮອບຄຳສັ່ງຊື້ທີ່ເປີດຢູ່</p>
           <p className="text-sm text-green-500">ກະລຸນາໄປສ້າງຮອບຄຳສັ່ງຊື້ໃໝ່ທີ່ໜ້າ List Order ກ່ອນ</p>
         </div>
@@ -99,7 +101,9 @@ export default function AddOrderPage() {
             <div className="space-y-4">
               {/* Round selector */}
               <div>
-                <label className="block text-sm font-semibold text-green-700 mb-1.5">📋 ຮອບຄຳສັ່ງຊື້</label>
+                <label className="flex items-center gap-1.5 text-sm font-semibold text-green-700 mb-1.5">
+                  <ClipboardList className="w-4 h-4" /> ຮອບຄຳສັ່ງຊື້
+                </label>
                 <select
                   className="input-field"
                   value={form.roundId}
@@ -113,7 +117,9 @@ export default function AddOrderPage() {
 
               {/* Customer name */}
               <div>
-                <label className="block text-sm font-semibold text-green-700 mb-1.5">👤 ຊື່ລູກຄ້າ</label>
+                <label className="flex items-center gap-1.5 text-sm font-semibold text-green-700 mb-1.5">
+                  <User className="w-4 h-4" /> ຊື່ລູກຄ້າ
+                </label>
                 <input
                   className="input-field"
                   placeholder="ຕື່ມຊື່ລູກຄ້າ..."
@@ -125,7 +131,9 @@ export default function AddOrderPage() {
               {/* Item count + price */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-semibold text-green-700 mb-1.5">📦 ຈຳນວນລາຍການ</label>
+                  <label className="flex items-center gap-1.5 text-sm font-semibold text-green-700 mb-1.5">
+                    <Package className="w-4 h-4" /> ຈຳນວນລາຍການ
+                  </label>
                   <input
                     className="input-field"
                     type="text"
@@ -135,7 +143,9 @@ export default function AddOrderPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-green-700 mb-1.5">💰 ຍອດລວມ (LAK)</label>
+                  <label className="flex items-center gap-1.5 text-sm font-semibold text-green-700 mb-1.5">
+                    <Banknote className="w-4 h-4" /> ຍອດລວມ (LAK)
+                  </label>
                   <input
                     className="input-field"
                     type="text"
@@ -156,7 +166,7 @@ export default function AddOrderPage() {
               )}
 
               <button onClick={handleSubmit} className="btn-primary w-full py-3 text-base flex items-center justify-center gap-2">
-                <span>💾</span> ບັນທຶກຄຳສັ່ງຊື້
+                <Save className="w-5 h-5" /> ບັນທຶກຄຳສັ່ງຊື້
               </button>
             </div>
           </div>
@@ -164,7 +174,9 @@ export default function AddOrderPage() {
           {/* Recent added */}
           {lastAdded.length > 0 && (
             <div>
-              <p className="text-xs font-bold text-green-600 uppercase tracking-wider mb-2">✅ ຕື່ມລ່າສຸດ</p>
+              <p className="text-xs font-bold text-green-600 uppercase tracking-wider mb-2 flex items-center gap-1">
+                <CheckCircle2 className="w-4 h-4" /> ຕື່ມລ່າສຸດ
+              </p>
               {lastAdded.map((o, i) => (
                 <div key={i} className="glass-card rounded-xl p-3 mb-2 flex items-center justify-between">
                   <div>

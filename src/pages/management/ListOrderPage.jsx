@@ -2,17 +2,16 @@ import { useState, useEffect } from 'react';
 import { roundService, orderService } from '../../services/storage';
 import { useAuth } from '../../context/AuthContext';
 import Swal from 'sweetalert2';
+import { ClipboardList, Circle, FilePlus, Pencil, Trash2, Plus } from 'lucide-react';
 
 function formatDate(iso) {
   if (!iso) return '—';
   const d = new Date(iso);
-  // show only date dd.mm.yyyy using Lao locale
   return d.toLocaleDateString('lo-LA', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.');
 }
 function formatPrice(n) { return n?.toLocaleString('en-US') + ' LAK'; }
 
 function formatNumber(str) {
-  // remove non-digits then add commas
   const digits = String(str).replace(/[^0-9]/g, '');
   return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
@@ -81,7 +80,9 @@ function RoundListView({ onSelectRound }) {
     <div className="px-4 py-5 max-w-lg mx-auto">
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h2 className="font-display text-xl font-bold text-green-800">📋 List Order</h2>
+          <h2 className="font-display text-xl font-bold text-green-800 flex items-center gap-2">
+            <ClipboardList className="w-5 h-5" /> List Order
+          </h2>
           <p className="text-green-500 text-xs">ເລືອກຮອບຄຳສັ່ງຊື້ທີ່ຕ້ອງການຈັດການ</p>
         </div>
         <button onClick={() => setShowCreate(!showCreate)} className="btn-primary text-sm px-3 py-2">
@@ -92,7 +93,9 @@ function RoundListView({ onSelectRound }) {
       {/* Create round form */}
       {showCreate && (
         <div className="glass-card rounded-2xl p-4 mb-5 border-2 border-green-300">
-          <p className="text-sm font-bold text-green-700 mb-3">🆕 ສ້າງຮອບຄຳສັ່ງຊື້ໃໝ່</p>
+          <p className="text-sm font-bold text-green-700 mb-3 flex items-center gap-1.5">
+            <FilePlus className="w-4 h-4" /> ສ້າງຮອບຄຳສັ່ງຊື້ໃໝ່
+          </p>
           <input
             className="input-field mb-3"
             placeholder="ໃສ່ຊື່ຮອບເຊັ່ນ Order_ຮອບທີ3 ຫຼື ຮອບເຊົ້າ..."
@@ -109,7 +112,9 @@ function RoundListView({ onSelectRound }) {
 
       {/* Open rounds */}
       <div className="mb-5">
-        <p className="text-xs font-bold text-green-600 uppercase tracking-wider mb-2">🟢 ຮອບທີ່ເປີດຢູ່ ({openRounds.length})</p>
+        <p className="text-xs font-bold text-green-600 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+          <Circle className="w-3 h-3 fill-green-500 text-green-500" /> ຮອບທີ່ເປີດຢູ່ ({openRounds.length})
+        </p>
         {openRounds.length === 0 && (
           <div className="glass-card rounded-2xl p-5 text-center text-green-400 text-sm">
             ບໍ່ມີຮອບທີ່ເປີດຢູ່ ກົດ "ສ້າງຮອບ" ເພື່ອເລີ່ມ
@@ -148,7 +153,9 @@ function RoundListView({ onSelectRound }) {
       {/* Closed rounds */}
       {closedRounds.length > 0 && (
         <div>
-          <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">⚫ ຮອບທີ່ປິດແລ້ວ ({closedRounds.length})</p>
+          <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+            <Circle className="w-3 h-3 fill-gray-500 text-gray-500" /> ຮອບທີ່ປິດແລ້ວ ({closedRounds.length})
+          </p>
           {closedRounds.map(round => {
             const summary = summaries[round.id] || { count: 0, totalPrice: 0 };
             return (
@@ -234,6 +241,8 @@ function OrderDetailView({ round, onBack }) {
     if (result.isConfirmed) { await orderService.delete(order.id); await load(); }
   };
 
+  const isOpen = round.status === 'open';
+
   return (
     <div className="px-4 py-5 max-w-lg mx-auto">
       {/* Header */}
@@ -242,10 +251,13 @@ function OrderDetailView({ round, onBack }) {
         <div className="flex-1">
           <h2 className="font-display font-bold text-green-800 text-base">{round.name}</h2>
           <div className="flex items-center gap-2">
-            <span className={round.status === 'open' ? 'badge-open' : 'badge-closed'}>{round.status === 'open' ? '🟢 ເປີດຮັບ' : '⚫ ປິດແລ້ວ'}</span>
+            <span className={isOpen ? 'badge-open' : 'badge-closed'}>
+              <Circle className={`inline w-2.5 h-2.5 mr-1 ${isOpen ? 'fill-green-500 text-green-500' : 'fill-gray-500 text-gray-500'}`} />
+              {isOpen ? 'ເປີດຮັບ' : 'ປິດແລ້ວ'}
+            </span>
           </div>
         </div>
-        {round.status === 'open' && (
+        {isOpen && (
           <button onClick={() => { setShowAddForm(true); setEditOrder(null); setForm({ customerName: '', itemCount: '', totalPrice: '' }); }} className="btn-primary text-sm px-3 py-2">
             + ເພີ່ມອໍເດີ
           </button>
@@ -255,8 +267,9 @@ function OrderDetailView({ round, onBack }) {
       {/* Edit / Add form */}
       {showAddForm && (
         <div className="glass-card rounded-2xl p-4 mb-4 border-2 border-yellow-300">
-          <p className="text-sm font-bold mb-3" style={{ color: editOrder ? '#D97706' : '#16A34A' }}>
-            {editOrder ? '✏️ ແກ້ໄຂຄຳສັ່ງຊື້' : '➕ ເພີ່ມອໍເດີ'}
+          <p className="text-sm font-bold mb-3 flex items-center gap-1.5" style={{ color: editOrder ? '#D97706' : '#16A34A' }}>
+            {editOrder ? <Pencil className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+            {editOrder ? 'ແກ້ໄຂຄຳສັ່ງຊື້' : 'ເພີ່ມອໍເດີ'}
           </p>
           <div className="space-y-3">
             <input className="input-field" placeholder="ຊື່ລູກຄ້າ" value={form.customerName} onChange={e => setForm({ ...form, customerName: e.target.value })} />
@@ -302,7 +315,7 @@ function OrderDetailView({ round, onBack }) {
                 <th className="px-3 py-3 text-right text-xs font-semibold">ຍອດ LAK</th>
                 <th className="px-3 py-3 text-center text-xs font-semibold">Admin</th>
                 <th className="px-3 py-3 text-center text-xs font-semibold">ວັນທີ</th>
-                {round.status === 'open' && <th className="px-3 py-3 text-center text-xs font-semibold">ຈັດການ</th>}
+                {isOpen && <th className="px-3 py-3 text-center text-xs font-semibold">ຈັດການ</th>}
               </tr>
             </thead>
             <tbody>
@@ -316,11 +329,15 @@ function OrderDetailView({ round, onBack }) {
                   <td className="px-3 py-3 text-right font-semibold text-green-700 text-xs">{order.totalPrice.toLocaleString()}</td>
                   <td className="px-3 py-3 text-center text-xs text-gray-500">{order.addedBy}</td>
                   <td className="px-3 py-3 text-center text-xs text-gray-400 whitespace-nowrap">{formatDate(order.createdAt)}</td>
-                  {round.status === 'open' && (
+                  {isOpen && (
                     <td className="px-3 py-3 text-center">
                       <div className="flex gap-1 justify-center">
-                        <button onClick={() => handleEdit(order)} className="text-xs bg-yellow-50 border border-yellow-300 text-yellow-700 px-2 py-1 rounded-lg hover:bg-yellow-100 transition-all">✏️</button>
-                        <button onClick={() => handleDelete(order)} className="text-xs bg-red-50 border border-red-300 text-red-600 px-2 py-1 rounded-lg hover:bg-red-100 transition-all">🗑</button>
+                        <button onClick={() => handleEdit(order)} className="flex items-center justify-center bg-yellow-50 border border-yellow-300 text-yellow-700 p-1.5 rounded-lg hover:bg-yellow-100 transition-all">
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                        <button onClick={() => handleDelete(order)} className="flex items-center justify-center bg-red-50 border border-red-300 text-red-600 p-1.5 rounded-lg hover:bg-red-100 transition-all">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
                       </div>
                     </td>
                   )}
