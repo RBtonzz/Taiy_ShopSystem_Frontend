@@ -5,7 +5,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'https://taiy-shop-server.onrender.com/api',
+  baseURL: import.meta.env.VITE_API_URL || 'https://abundant-appreciation-production.up.railway.app/api',
 });
 
 // Attach JWT token to every request automatically
