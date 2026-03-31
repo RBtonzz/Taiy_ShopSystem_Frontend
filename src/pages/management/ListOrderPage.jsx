@@ -3,6 +3,7 @@ import { roundService, orderService } from '../../services/storage';
 import { useAuth } from '../../context/AuthContext';
 import Swal from 'sweetalert2';
 import { ClipboardList, Circle, FilePlus, Pencil, Trash2, Plus } from 'lucide-react';
+import { showMaintenanceAlert } from '../../utils/maintenanceAlert';
 
 function formatDate(iso) {
   if (!iso) return '—';
@@ -32,6 +33,7 @@ function RoundListView({ onSelectRound }) {
     );
     setSummaries(Object.fromEntries(entries));
   };
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { load(); }, []);
 
   const handleCreate = async () => {
@@ -75,6 +77,10 @@ function RoundListView({ onSelectRound }) {
 
   const openRounds = rounds.filter(r => r.status === 'open');
   const closedRounds = rounds.filter(r => r.status === 'closed');
+
+  useEffect(() => {
+    showMaintenanceAlert();
+  }, []);
 
   return (
     <div className="px-4 py-5 max-w-lg mx-auto">
@@ -195,6 +201,7 @@ function OrderDetailView({ round, onBack }) {
   const { user } = useAuth();
 
   const load = async () => setOrders(await orderService.getByRound(round.id));
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { load(); }, [round.id]);
 
   const filtered = orders.filter(o => o.customerName.toLowerCase().includes(search.toLowerCase()));
