@@ -3,8 +3,8 @@ import Swal from 'sweetalert2';
 // ===== เปิด/ปิดแจ้งเตือนปรับปรุงระบบ — แก้ที่นี่จุดเดียว =====
 // เปิด → true  |  ปิด → false
 
-const SHOW_MAINTENANCE_ALERT = true;
-// const SHOW_MAINTENANCE_ALERT = false;
+// const SHOW_MAINTENANCE_ALERT = true;
+const SHOW_MAINTENANCE_ALERT = false;
 
 // ============================================================
 
