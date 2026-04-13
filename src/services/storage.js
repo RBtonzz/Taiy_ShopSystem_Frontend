@@ -3,9 +3,11 @@
 // ============================================================
 
 import axios from 'axios';
+import Swal from 'sweetalert2';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'https://abundant-appreciation-production.up.railway.app/api',
+  baseURL: import.meta.env.VITE_API_URL || 'https://taiy-shop-server-vovw.onrender.com/api',
+  timeout: 10000,
 });
 
 // Attach JWT token to every request automatically
@@ -14,6 +16,27 @@ api.interceptors.request.use((config) => {
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
+
+// Handle timeout / network errors globally
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const isTimeout = error.code === 'ECONNABORTED' || error.message?.includes('timeout');
+    const isNetwork = !error.response;
+
+    if (isTimeout || isNetwork) {
+      Swal.fire({
+        icon: 'error',
+        title: 'ໂຫຼດຂໍ້ມູນບໍ່ໄດ້',
+        html: '<p style="font-size:14px;color:#555">ບໍ່ສາມາດເຊື່ອມຕໍ່ເຊີບເວີໄດ້<br><span style="color:#EF4444">Internet Error</span><br><br>ກວດສອບ internet ແລ້ວລອງໃໝ່ອີກຄັ້ງ</p>',
+        confirmButtonText: 'ລອງໃໝ່',
+        confirmButtonColor: '#27AE60',
+        showCancelButton: false,
+      });
+    }
+    return Promise.reject(error);
+  }
+);
 
 // ---- AUTH ----
 export const authService = {
